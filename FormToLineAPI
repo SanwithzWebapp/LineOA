@@ -1,4 +1,4 @@
-const LINE_TOKEN = 'XXXXX'; // LINE Messaging API Token
+const LINE_TOKEN = 'XXXXX'; // Channel access token
 
 const GROUP_ID = 'XXXXXX'; // Group ID
 
