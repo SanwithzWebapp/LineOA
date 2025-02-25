@@ -1,0 +1,19 @@
+const LINE_TOKEN = 'xxx'; // Channel access token
+
+const GROUP_ID = 'xxx'; // Group ID
+
+function FormToLineAPI(e) {
+  const responses = e.response.getItemResponses().filter(r => r.getResponse().trim() !== '').map(r => `- ${r.getItem().getTitle()}: ${r.getResponse()}`).join('\n');
+  if (!responses) return; 
+  const message = `📢 New Form Submission\n\n${responses}`;
+
+  UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: `Bearer ${LINE_TOKEN}` },
+    payload: JSON.stringify({
+      to: GROUP_ID,
+      messages: [{ type: 'text', text: message }]
+    })
+  });
+}
