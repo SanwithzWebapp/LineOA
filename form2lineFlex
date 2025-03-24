@@ -1,0 +1,65 @@
+const LINE_TOKEN = 'xxxxx';
+const GROUP_ID = 'xxxxx';
+
+function FormToLineAPI(e) {
+  let flexTextContents = [];
+  let imageMessages = [];
+  e.response.getItemResponses().forEach(r => {
+    const title = r.getItem().getTitle();
+    const response = r.getResponse();
+    let displayText = '';
+    if (typeof response === 'object' && response.length > 0) {
+      const fileId = response[0];
+      const imageUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+      imageMessages.push({
+        type: 'image',
+        originalContentUrl: imageUrl,
+        previewImageUrl: imageUrl
+      });
+      displayText = `- ${title}: [Image Uploaded]`;
+    } else {
+      displayText = `- ${title}: ${response}`;
+    }
+    flexTextContents.push({
+      type: "text",
+      text: displayText,
+      wrap: true,
+      margin: "md"
+    });
+  });
+  const flexMessagePayload = {
+    to: GROUP_ID,
+    messages: [{
+      type: "flex",
+      altText: "New Form Submission",
+      contents: {
+        type: "bubble",
+        body: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            { type: "text", text: "Form to Line Messaging API", weight: "bold", color: "#1DB446", size: "sm" },
+            { type: "text", text: "สื่อและนวัตกรรมครูสิทธิชาติ", weight: "bold", size: "xl", margin: "md" },
+            { type: "separator", margin: "xxl" },
+            { type: "box", layout: "vertical", contents: flexTextContents }
+          ]
+        },
+        styles: { footer: { separator: true } }
+      }
+    }]
+  };
+  UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: `Bearer ${LINE_TOKEN}` },
+    payload: JSON.stringify(flexMessagePayload)
+  });
+  imageMessages.forEach(imageMessage => {
+    UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { Authorization: `Bearer ${LINE_TOKEN}` },
+      payload: JSON.stringify({ to: GROUP_ID, messages: [imageMessage] })
+    });
+  });
+}
