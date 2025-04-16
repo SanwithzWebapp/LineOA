@@ -1,0 +1,18 @@
+const LINE_TOKEN = 'XXXXX';
+const GROUP_IDS = ['GROUP_ID1', 'GROUP_ID2', 'GROUP_ID3'];
+
+function FormToLineAPI(e) {
+  const message = `📢 New Form Submission\n\n` +
+    e.response.getItemResponses()
+      .map(r => `- ${r.getItem().getTitle()}: ${Array.isArray(r.getResponse()) ? r.getResponse().join(', ') : r.getResponse()}`)
+      .join('\n');
+
+  GROUP_IDS.forEach(id => {
+    UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { Authorization: `Bearer ${LINE_TOKEN}` },
+      payload: JSON.stringify({ to: id, messages: [{ type: 'text', text: message }] })
+    });
+  });
+}
