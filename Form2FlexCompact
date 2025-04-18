@@ -1,0 +1,48 @@
+const LINE_TOKEN = 'xxxx';
+const GROUP_ID   = 'xxxx';
+
+function FormToLineAPI(e) {
+  const T = FormApp.ItemType;
+  const texts = [], imgs = [];
+
+  e.response.getItemResponses().forEach(r => {
+    const it = r.getItem(), t = it.getTitle(), v = r.getResponse(), ty = it.getType();
+    if (ty === T.FILE_UPLOAD && Array.isArray(v)) {
+      v.forEach(id => {
+        texts.push({type:"text", text:`- ${t}: [Image]`, wrap:true, margin:"md"});
+        imgs.push({type:"image", url:`https://lh3.googleusercontent.com/d/${id}`, size:"full", aspectRatio:"1:1", aspectMode:"cover", margin:"md"});
+      });
+    } else {
+      const txt = Array.isArray(v) ? v.join(', ') : v;
+      texts.push({type:"text", text:`- ${t}: ${txt}`, wrap:true, margin:"md"});
+    }
+  });
+
+  UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: `Bearer ${LINE_TOKEN}` },
+    payload: JSON.stringify({
+      to: GROUP_ID,
+      messages: [{
+        type: "flex",
+        altText: "New Form Submission",
+        contents: {
+          type: "bubble",
+          size: "giga",
+          body: {
+            type: "box",
+            layout: "vertical",
+            contents: [
+              {type:"text", text:"Form to Line Messaging API", weight:"bold", color:"#1DB446", size:"sm"},
+              {type:"text", text:"สื่อและนวัตกรรมครูสิทธิชาติ", weight:"bold", size:"xl", margin:"md"},
+              {type:"separator", margin:"xxl"},
+              ...texts,
+              ...imgs
+            ]
+          }
+        }
+      }]
+    })
+  });
+}
