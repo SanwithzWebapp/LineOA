@@ -1,0 +1,64 @@
+const LINE_TOKEN = 'xxx';
+const GROUP_ID   = 'xxx';
+
+function FormToLineAPI(e) {
+  const T = FormApp.ItemType;
+  const texts = [], pdfButtons = [];
+
+  e.response.getItemResponses().forEach(r => {
+    const it = r.getItem(), t = it.getTitle(), v = r.getResponse(), ty = it.getType();
+
+    if (ty === T.FILE_UPLOAD && Array.isArray(v)) {
+      v.forEach(id => {
+        const pdfUrl = `https://drive.google.com/file/d/${id}/view?usp=sharing`;
+        pdfButtons.push({
+          type: "button",
+          action: {
+            type: "uri",
+            label: `เปิดไฟล์: ${t}`,
+            uri: pdfUrl
+          },
+          style: "primary",
+          margin: "sm"
+        });
+      });
+    } else {
+      const txt = Array.isArray(v) ? v.join(', ') : v;
+      texts.push({ type: "text", text: `- ${t}: ${txt}`, wrap: true, margin: "md" });
+    }
+  });
+
+  const payload = {
+    to: GROUP_ID,
+    messages: [{
+      type: "flex",
+      altText: "New Form Submission",
+      contents: {
+        type: "bubble",
+        size: "giga",
+        body: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            { type: "text", text: "Form to Line Messaging API", weight: "bold", color: "#1DB446", size: "sm" },
+            { type: "text", text: "สื่อและนวัตกรรมครูสิทธิชาติ", weight: "bold", size: "xl", margin: "md" },
+            { type: "separator", margin: "xxl" },
+            ...texts
+          ]
+        },
+        footer: pdfButtons.length > 0 ? {
+          type: "box",
+          layout: "vertical",
+          contents: pdfButtons
+        } : undefined
+      }
+    }]
+  };
+
+  UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: `Bearer ${LINE_TOKEN}` },
+    payload: JSON.stringify(payload)
+  });
+}
